@@ -1,6 +1,6 @@
 # Ragent
 
-Ragent 是一个面向私有知识库问答和研究报告生成的多智能体 GraphRAG 平台。项目把文档解析、向量检索、知识图谱、多轮对话、人工审核和深度研究流程整合在一起，适合作为 AI 应用后端、RAG 系统和智能体编排项目来学习与展示。
+Ragent 是一个面向私有知识库问答和研究报告生成的多智能体 GraphRAG 平台。项目把文档解析、向量检索、知识图谱、多轮对话、人工审核和深度研究流程整合在一起。
 
 > 本仓库已整理为 Codex 运行与复盘语境，旧版 Claude 相关说明不作为项目使用入口。
 
@@ -248,99 +248,3 @@ python start_worker.py
 | `DELETE /api/documents/{filename}` | 删除文档 |
 | `POST /api/research/create` | 创建深度研究任务 |
 | `GET /api/research/{execution_id}/report` | 获取研究报告 |
-
-## 简历写法参考
-
-项目名称：Ragent 多智能体 GraphRAG 知识库平台
-
-可以写成：
-
-> 基于 FastAPI、LangGraph、Milvus、Neo4j、MySQL 和 Redis 实现多智能体 GraphRAG 知识库平台，支持文档上传解析、向量检索、知识图谱检索、HITL 人工介入、流式问答和深度研究报告生成。本人负责本地环境搭建、配置迁移、运行排错、前端交互优化、上传进度展示、报告引用清洗和 Codex 化文档整理。
-
-面试时按这条线讲：
-
-```text
-用户上传文档
--> 后端保存文件并写入 Redis Streams 队列
--> 消费者解析文档并切块
--> Embedding 写入 Milvus
--> 实体关系写入 Neo4j
--> 用户提问
--> LangGraph 调度 RAG/图谱/联网搜索等智能体
--> 汇总、校验并流式返回答案
-```
-
-## 常见问题
-
-### 网页打不开
-
-先确认 `python start.py` 是否输出：
-
-```text
-Uvicorn running on http://0.0.0.0:8000
-```
-
-本机浏览器访问时使用：
-
-```text
-http://127.0.0.1:8000
-```
-
-### 文档上传后一直是 0 个片段
-
-通常是消费者没有启动。保留 `python start.py` 不要关，再开一个终端运行：
-
-```powershell
-python -c "from backend.pipeline.stream_consumer import run_stream_consumer; run_stream_consumer()"
-```
-
-### MySQL 连接失败
-
-Docker Compose 中 MySQL 容器内部端口是 `3306`，映射到本机是 `3307`。
-
-本机 PyCharm 运行后端时使用：
-
-```env
-DATABASE_URL=mysql+pymysql://root:password@localhost:3307/agent_chat
-```
-
-如果 API 也跑在 Docker Compose 的 `full` profile 中，则使用容器服务名：
-
-```env
-DATABASE_URL=mysql+pymysql://root:password@mysql:3306/agent_chat
-```
-
-### PDF 和 PPTX 导出
-
-当前项目的研究报告 PDF 采用浏览器打印能力：点击 PDF 后在打印窗口选择“另存为 PDF”。PPTX 暂未实现，前端已置为不可用状态，避免误导。
-
-### 深度研究参考文献为空
-
-已在报告生成与读取接口中增加引用清洗逻辑：无效空引用会被过滤，报告读取时也会尝试根据证据重新生成参考文献。
-
-## 开发与验证
-
-语法检查示例：
-
-```powershell
-python -m py_compile backend/api/routes.py backend/pipeline/stream_consumer.py backend/storage/doc_processing_status.py backend/research/report_generator.py backend/research/routes.py backend/agent/orchestrator.py backend/agent/brain.py
-```
-
-运行测试：
-
-```powershell
-pytest
-```
-
-## GitHub 提交注意
-
-以下内容不要提交：
-
-- `.env`
-- `data/`
-- `logs/`
-- `.idea/`
-- `__pycache__/`
-- `Ragent.egg-info/`
-
-这些内容已经通过 `.gitignore` 忽略。
